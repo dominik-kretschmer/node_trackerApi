@@ -1,11 +1,19 @@
-import { getAvgDailyPollenArr } from "../Controller/pollenController.js";
-import * as authController from "../Controller/authController.js";
 import express from "express";
+import { symptomController } from "../Controller/symptomController.js";
+import { AuthController } from "../Controller/authController.js";
 
 const router = express.Router();
 
-router.post("/symptom/daily/avg", getAvgDailyPollenArr);
-router.post("/register", authController.register);
-router.post("/login", authController.login);
+const pollenCtrl = new symptomController();
+const authCtrl = new AuthController();
+
+router.post("/symptom/daily/avg", (req, res) =>
+    pollenCtrl.getAvgDailyPollenArr(req, res),
+);
+router.post("/symptom/pollen", (req, res) =>
+    pollenCtrl.sendUserEntries(req, res),
+);
+router.post("/register", (req, res) => authCtrl.register(req, res));
+router.post("/login", (req, res) => authCtrl.login(req, res));
 
 export default router;

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import entities from "../vendor/dynamicEntityLoader.js";
+import entities from "../vendor/DynamicEntity/dynamicEntityLoader.js";
 dotenv.config();
 
 export async function decodeJwtToken(req) {

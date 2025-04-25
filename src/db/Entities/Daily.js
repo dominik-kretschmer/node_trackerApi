@@ -1,4 +1,4 @@
-import { EntityModel } from "../../vendor/EntityModel.js";
+import { EntityModel } from "../../vendor/DynamicEntity/EntityModel.js";
 
 const table = "daily_entries";
 
