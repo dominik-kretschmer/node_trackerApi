@@ -3,7 +3,6 @@ import { upsertPollenEntries } from "../db/queries/pollenDbService.js";
 import { loadCache, saveCache } from "./handleCache.js";
 
 export async function getPollenData(regionId = 121) {
-
     const now = new Date();
 
     const cache = await loadCache();
@@ -13,7 +12,7 @@ export async function getPollenData(regionId = 121) {
 
     try {
         const res = await fetch(
-            "https://opendata.dwd.de/climate_environment/health/alerts/s31fg.json"
+            "https://opendata.dwd.de/climate_environment/health/alerts/s31fg.json",
         );
         const data = await res.json();
 
@@ -25,7 +24,7 @@ export async function getPollenData(regionId = 121) {
         const next = parseUpdateTime(data.next_update);
 
         const region = data.content.find(
-            (entry) => entry.partregion_id === regionId
+            (entry) => entry.partregion_id === regionId,
         );
         if (!region) {
             throw new Error(`Region ${regionId} nicht gefunden`);

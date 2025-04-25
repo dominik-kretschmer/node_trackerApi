@@ -1,9 +1,10 @@
 import { decodeJwtToken } from "../Services/decodeJwtToken.js";
-import { SymptomEntry } from "../db/queries/entryQueries.js";
+import entities from "../vendor/dynamicEntityLoader.js";
 import { importPollenData } from "./pollenController.js";
 
 async function withUserId(req, res, callback) {
     const userId = await decodeJwtToken(req);
+
     if (!userId)
         return res
             .status(401)
@@ -17,10 +18,10 @@ async function withUserId(req, res, callback) {
 }
 
 export async function sendUserEntries(req, res, model) {
-    if (model === SymptomEntry) {
+    if (model === entities.Symptom) {
         return withUserId(req, res, async (userId) => {
             res.status(200).json(
-                await SymptomEntry.findSymptomAndPollenByDateAndUser(
+                await entities.Symptom.findSymptomAndPollenByDateAndUser(
                     userId,
                     req.body,
                 ),
@@ -41,7 +42,7 @@ export async function sendUserEntries(req, res, model) {
 }
 
 export async function validateUserEntry(req, res, model) {
-    if (model === SymptomEntry) {
+    if (model === entities.Symptom) {
         return await saveSymptomData(req, res, model);
     }
     return withUserId(req, res, async (userId) => {

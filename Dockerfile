@@ -9,5 +9,6 @@ RUN npm install -g nodemon
 COPY . .
 
 EXPOSE 3000
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 CMD ["npm", "run", "dev"]

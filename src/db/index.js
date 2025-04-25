@@ -1,7 +1,4 @@
 import knex from "knex";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 let db;
 
@@ -19,8 +16,7 @@ for (let i = 0; i < 10; i++) {
         });
         console.log("Mit Datenbank verbunden");
         break;
-    } catch (err) {
-        console.log(`Verbindung fehlgeschlagen (${i + 1}/10): ${err.message}`);
+    } catch {
         await new Promise((res) => setTimeout(res, 2000));
     }
 }

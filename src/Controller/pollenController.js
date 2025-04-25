@@ -23,45 +23,32 @@ export async function importPollenData(req, res) {
             pollen: pollenData,
         };
     } catch (err) {
-        return res
-            .status(500)
-            .json({
-                message: "Fehler beim Importieren der Pollen-Daten" + err,
-            });
+        return res.status(500).json({
+            message: "Fehler beim Importieren der Pollen-Daten" + err,
+        });
     }
 }
 
 export async function getAvgDailyPollenArr(req, res) {
-    const userId =  await decodeJwtToken(req)
-    const rows = await getDailyAvg(req.body ,userId);
-    const result = [];
-    const mapByDate = {};
+    try {
+        const userId = await decodeJwtToken(req);
+        const rows = await getDailyAvg(req.body, userId);
 
-    for (const row of rows) {
-        const {
-            date,
-            pollen_type,
-            avg_sneezing,
-            avg_itchy_eyes,
-            avg_congestion,
-            avg_pollen_value,
-        } = row;
-
-        if (!mapByDate[date]) {
-            mapByDate[date] = {
-                date,
-                avg_sneezing,
-                avg_itchy_eyes,
-                avg_congestion,
-                pollen: {},
+        const result = rows.map((r) => {
+            const raw = r.pollen_values || "{}";
+            delete raw[""];
+            return {
+                date: r.date,
+                avg_sneezing: parseFloat(r.avg_sneezing),
+                avg_itchy_eyes: parseFloat(r.avg_itchy_eyes),
+                avg_congestion: parseFloat(r.avg_congestion),
+                pollen: raw,
             };
-            result.push(mapByDate[date]);
-        }
+        });
 
-        const value = parseFloat(avg_pollen_value);
-        if (value > 0) {
-            mapByDate[date].pollen[pollen_type] = value;
-        }
+        return res.status(200).json(result);
+    } catch (err) {
+        console.error("getAvgDailyPollenArr Error:", err);
+        return res.status(500).json({ message: "Serverfehler" });
     }
-    res.status(200).json(result);
 }

@@ -1,4 +1,4 @@
-import { User } from "../db/queries/entryQueries.js";
+import entities from "../vendor/dynamicEntityLoader.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -6,14 +6,14 @@ export async function register(req, res) {
     const { username, password_hash } = req.body;
 
     try {
-        const existing = await User.findOneBy("username", username);
+        const existing = await entities.User.findOneBy("username", username);
         if (existing)
             return res
                 .status(400)
                 .json({ message: "Username schon registriert" });
 
         const hash = await bcrypt.hash(password_hash, 10);
-        await User.create({ username, password_hash: hash });
+        await entities.User.create({ username, password_hash: hash });
 
         res.status(201).json({ message: "User wurde erfolgreich erstellt" });
     } catch (err) {
@@ -25,7 +25,7 @@ export async function login(req, res) {
     const { username, password_hash } = req.body;
 
     try {
-        const user = await User.findOneBy("username", username);
+        const user = await entities.User.findOneBy("username", username);
         if (!user)
             return res
                 .status(401)

@@ -18,7 +18,6 @@ export async function getPollenTypeIds() {
 
 export async function upsertPollenEntries(pollenData, date) {
     await ensurePollenTypesExist(pollenData);
-
     const typeMap = await getPollenTypeIds();
 
     const rows = Object.entries(pollenData).map(([name, value]) => ({
@@ -37,42 +36,35 @@ export async function upsertPollenEntries(pollenData, date) {
 
 export async function getDailyAvg(filters, userId) {
     const filterDefs = await getFilters(filters, userId);
-    const table = "symptom_entries as se";
 
-    let query = db(table)
+    let base = db("symptom_entries as se")
         .leftJoin("pollen_entries as pe", "pe.date", "se.date")
-        .leftJoin("pollen_types as pt", "pt.id", "pe.pollen_type_id")
-        .select(
-            "se.date",
-            "pt.name as pollen_type",
-            db.raw("AVG(??) as avg_sneezing", ["se.sneezing"]),
-            db.raw("AVG(??) as avg_itchy_eyes", ["se.itchy_eyes"]),
-            db.raw("AVG(??) as avg_congestion", ["se.congestion"]),
-            db.raw("AVG(??) as avg_pollen_value", ["pe.value"])
-        );
+        .leftJoin("pollen_types as pt", function () {
+            this.on("pe.pollen_type_id", "pt.id").andOnNotNull("pt.name");
+        })
+        .where("se.user_id", userId)
+        .andWhere("pe.value", ">", 0);
 
     for (const { field, value, type } of filterDefs) {
-        if (field.startsWith("avg_")) {
-            const column = field.replace("avg_", "");
+        if (!field.startsWith("avg_")) {
+            const safe = String(value).slice(0, 100);
             if (type === "equal") {
-                query = query.havingRaw(`AVG(??) = ?`, [column, value]);
+                base = base.where(`se.${field}`, safe);
             } else if (type === "like") {
-                query = query.havingRaw(`AVG(??) LIKE ?`, [column, `%${value}%`]);
-            }
-        } else {
-            if (type === "equal") {
-                query = query.where(`se.${field}`, value);
-            } else if (type === "like") {
-                query = query.whereRaw(
-                    `?? LIKE ? COLLATE utf8mb4_general_ci`,
-                    [`se.${field}`, `%${value}%`]
-                );
+                base = base.where(`se.${field}`, "like", `%${safe}%`);
             }
         }
     }
 
-    query = query.groupBy("se.date", "pt.name");
-    return query;
+    return base
+        .select(
+            "se.date",
+            db.raw("AVG(se.sneezing) AS avg_sneezing"),
+            db.raw("AVG(se.itchy_eyes) AS avg_itchy_eyes"),
+            db.raw("AVG(se.congestion) AS avg_congestion"),
+            db.raw(
+                "JSON_OBJECTAGG(COALESCE(pt.name, ''), pe.value) AS pollen_values",
+            ),
+        )
+        .groupBy("se.date");
 }
-
-
