@@ -1,22 +1,21 @@
-import { db } from "../../db/index.js";
+import { db } from "../../src/db/index.js";
 
 export class EntityModel {
     db = db;
+
     constructor(table, buildRow) {
         this.table = table;
         this.buildRow = buildRow;
     }
 
     async create(data) {
-        const row = this.buildRow(data);
-        return this.db(this.table).insert(row);
+        return this.db(this.table).insert(this.buildRow(data));
     }
 
     async findOneBy(key, value) {
-        const result = await this.db(this.table)
+        return this.db(this.table)
             .where({ [key]: value })
             .first();
-        return result ?? null;
     }
 
     async updateById(userId, entryId, updatedData) {
@@ -34,19 +33,19 @@ export class EntityModel {
     async findByFilter(filters, userId, table = this.table) {
         const { filterDefs, limit, offset } = await this.getFilters(
             filters,
-            userId,
+            userId
         );
         let query = this.db(table);
         for (const { field, value, type } of filterDefs) {
-            query = query.where(
-                field,
-                type === "equal" ? "=" : "like",
-                type === "equal" ? value : `%${value}%`,
-            );
+            query = query
+                .where(
+                    field,
+                    type === "equal" ? "=" : "like",
+                    type === "equal" ? value : `%${value}%`
+                )
+                .limit(limit)
+                .offset(offset);
         }
-
-        query = query.limit(limit).offset(offset);
-
         return query;
     }
 
@@ -62,14 +61,14 @@ export class EntityModel {
         delete parms.limit;
 
         const filterDefs = Object.entries(parms).map(
-            ([field, { value, type }]) => ({ field, value, type }),
+            ([field, { value, type }]) => ({ field, value, type })
         );
 
         return { filterDefs, limit, offset };
     }
 
     async getAll(table = this.table, selectedRows = "*") {
-        const rows = await this.db(table).select(selectedRows);
-        return Object.fromEntries(rows.map((r) => [r.name, r.id]));
+        return this.db(table)
+            .select(selectedRows);
     }
 }

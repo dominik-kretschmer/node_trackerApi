@@ -1,16 +1,15 @@
-import { EntryController } from "../vendor/DynamicController/EntryController.js";
-import entities from "../vendor/DynamicEntity/dynamicEntityLoader.js";
+import { EntryController } from "../../vendor/DynamicController/EntryController.js";
+import entities from "../../vendor/DynamicEntity/dynamicEntityLoader.js";
 import { decodeJwtToken } from "../Services/decodeJwtToken.js";
 import { getPollenData } from "../Services/getPollenData.js";
 
-export class symptomController extends EntryController {
+export class SymptomController extends EntryController {
     constructor() {
         super(entities.Symptom);
     }
 
     sendUserEntries(req, res) {
         return this.withUserId(req, res, async (userId) => {
-
             const data =
                 await entities.Pollen_entries.findSymptomAndPollenByDateAndUser(
                     userId,
@@ -20,9 +19,6 @@ export class symptomController extends EntryController {
         });
     }
 
-    validateUserEntry(req, res) {
-        return this.saveSymptomData(req, res);
-    }
 
     async getAvgDailyPollenArr(req, res) {
         try {
@@ -80,7 +76,6 @@ export class symptomController extends EntryController {
                 res.status(404).json({ message: "Keine Daten gefunden" });
                 return;
             }
-            await this.model.upsertPollenEntries(pollenData, date);
             return {
                 message: "Pollen-Daten erfolgreich gespeichert",
                 regionId,

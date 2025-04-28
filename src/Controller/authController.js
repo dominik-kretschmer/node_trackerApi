@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { EntryController } from "../vendor/DynamicController/EntryController.js";
-import entities from "../vendor/DynamicEntity/dynamicEntityLoader.js";
+import { EntryController } from "../../vendor/DynamicController/EntryController.js";
+import entities from "../../vendor/DynamicEntity/dynamicEntityLoader.js";
 
 export class AuthController extends EntryController {
     constructor() {
@@ -11,8 +11,7 @@ export class AuthController extends EntryController {
     async register(req, res) {
         const { username, password_hash } = req.body;
         try {
-            const existing = await this.model.findOneBy("username", username);
-            if (existing) {
+            if (await this.model.findOneBy("username", username)) {
                 res.status(400).json({ message: "Username schon registriert" });
                 return;
             }

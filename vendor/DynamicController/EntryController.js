@@ -1,4 +1,4 @@
-import { decodeJwtToken } from "../../Services/decodeJwtToken.js";
+import { decodeJwtToken } from "../../src/Services/decodeJwtToken.js";
 
 export class EntryController {
     constructor(model) {
@@ -16,9 +16,7 @@ export class EntryController {
             }
             await callback(userId);
         } catch (err) {
-            if (!res.headersSent) {
-                res.status(500).json({ error: "Serverfehler: " + err.message });
-            }
+            res.status(500).json({ error: "Serverfehler: " + err.message });
         }
     }
 
@@ -33,9 +31,7 @@ export class EntryController {
         return this.withUserId(req, res, async (userId) => {
             req.body.userId = userId;
             await this.model.create(req.body);
-            if (!res.headersSent) {
-                res.status(200).json({ message: "Entry wurde angelegt" });
-            }
+            res.status(200).json({ message: "Entry wurde angelegt" });
         });
     }
 
@@ -49,9 +45,9 @@ export class EntryController {
                 });
                 return;
             }
-            if (!res.headersSent) {
-                res.status(200).json({ message: "Eintrag wurde aktualisiert" });
-            }
+            return res
+                .status(200)
+                .json({ message: "Eintrag wurde aktualisiert" });
         });
     }
 
@@ -64,9 +60,7 @@ export class EntryController {
                 });
                 return;
             }
-            if (!res.headersSent) {
-                res.status(200).json({ message: "Eintrag wurde gelöscht" });
-            }
+            res.status(200).json({ message: "Eintrag wurde gelöscht" });
         });
     }
 }

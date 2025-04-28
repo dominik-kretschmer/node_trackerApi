@@ -1,4 +1,4 @@
-import { EntityModel } from "../../vendor/DynamicEntity/EntityModel.js";
+import { EntityModel } from "../../../vendor/DynamicEntity/EntityModel.js";
 
 const table = "pollen_entries";
 const buildRow = () => {};
@@ -40,13 +40,23 @@ class PollenEntryModel extends EntityModel {
 
     async upsertPollenEntries(pollenData, date) {
         await this.ensurePollenTypesExist(pollenData);
-        const typeMap = await this.getAll("pollen_types");
+        const data = await this.getAll("pollen_types");
+
+        const mapped = data.reduce((acc, { name }) => {
+            acc[name] = 0;
+            return acc;
+        }, {});
+
+        for (const { id, name } of data) {
+            if (name in mapped) {
+                mapped[name] = id;
+            }
+        }
         const rows = Object.entries(pollenData).map(([name, value]) => ({
             date,
-            pollen_type_id: typeMap[name],
+            pollen_type_id: mapped[name],
             value: value,
         }));
-
         for (const entry of rows) {
             await this.db(table)
                 .insert(entry)

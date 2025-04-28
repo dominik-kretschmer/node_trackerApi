@@ -1,21 +1,21 @@
 import fetch from "node-fetch";
 import { loadCache, saveCache } from "./handleCache.js";
-import entities from "../vendor/DynamicEntity/dynamicEntityLoader.js";
+import entities from "../../vendor/DynamicEntity/dynamicEntityLoader.js";
 
 export async function getPollenData(regionId = 121) {
     const now = new Date();
-
     const cache = await loadCache();
+
     if (cache.nextUpdate && now < new Date(cache.nextUpdate)) {
         return cache.pollenData;
     }
 
     try {
+        console.log("api")
         const res = await fetch(
             "https://opendata.dwd.de/climate_environment/health/alerts/s31fg.json",
         );
         const data = await res.json();
-        console.log("api call");
         const parseUpdateTime = (str) => {
             return str.replace(" Uhr", "").replace(" ", "T");
         };
@@ -32,7 +32,6 @@ export async function getPollenData(regionId = 121) {
 
         const pollenData = extractTodayValues(region.Pollen);
         const today = now.toISOString().split("T")[0];
-
         await entities.Pollen_entries.upsertPollenEntries(pollenData, today);
 
         await saveCache({

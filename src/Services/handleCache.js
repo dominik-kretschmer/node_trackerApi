@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 
-const CACHE_DIR =  "/app/src/cache"
+const CACHE_DIR = "/app/cache";
 
 async function ensureCacheDir() {
     await fs.mkdir(CACHE_DIR, { recursive: true });
@@ -9,7 +9,7 @@ async function ensureCacheDir() {
 export async function loadCache() {
     try {
         await ensureCacheDir();
-        const txt = await fs.readFile("pollen.json", "utf-8");
+        const txt = await fs.readFile("cache/pollen.json", "utf-8");
         return JSON.parse(txt);
     } catch (err) {
         if (err.code === "ENOENT") {
@@ -21,5 +21,5 @@ export async function loadCache() {
 
 export async function saveCache(obj) {
     await ensureCacheDir();
-    await fs.writeFile("pollen.json", JSON.stringify(obj, null, 2), "utf-8");
+    await fs.writeFile("cache/pollen.json", JSON.stringify(obj, null, 2), "utf-8");
 }

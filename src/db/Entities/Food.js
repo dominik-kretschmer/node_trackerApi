@@ -1,4 +1,4 @@
-import { EntityModel } from "../../vendor/DynamicEntity/EntityModel.js";
+import { EntityModel } from "../../../vendor/DynamicEntity/EntityModel.js";
 
 const table = "food_entries";
 

@@ -13,11 +13,10 @@ export function GetDynamicRoutes(router) {
     for (const [modelName, model] of Object.entries(entities)) {
         if (exclude.has(modelName)) continue;
         const base = "/" + modelName[0].toLowerCase() + modelName.slice(1);
-        const ctrl = new EntryController(model);
 
         for (const [httpMethod, suffix, methodName] of methods) {
             router[httpMethod](`${base}/${suffix}`, (req, res) =>
-                ctrl[methodName](req, res),
+                new EntryController(model)[methodName](req, res),
             );
         }
     }
