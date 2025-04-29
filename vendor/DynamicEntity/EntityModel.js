@@ -30,10 +30,10 @@ export class EntityModel {
             .del();
     }
 
-    async findByFilter(filters, userId, table = this.table) {
+    async findByFilter(filters, userId = "", table = this.table) {
         const { filterDefs, limit, offset } = await this.getFilters(
             filters,
-            userId
+            userId,
         );
         let query = this.db(table);
         for (const { field, value, type } of filterDefs) {
@@ -41,7 +41,7 @@ export class EntityModel {
                 .where(
                     field,
                     type === "equal" ? "=" : "like",
-                    type === "equal" ? value : `%${value}%`
+                    type === "equal" ? value : `%${value}%`,
                 )
                 .limit(limit)
                 .offset(offset);
@@ -50,25 +50,24 @@ export class EntityModel {
     }
 
     async getFilters({ parms = {} }, userId) {
-        const user = (parms.user_id ??= {});
-        if (user.value !== userId) {
-            Object.assign(user, { value: userId, type: "equal" });
+        if (userId) {
+            const user = (parms.user_id ??= {});
+            if (user.value !== userId) {
+                Object.assign(user, { value: userId, type: "equal" });
+            }
         }
 
         const limit = Number(parms.limit) || 1000;
         const offset = Number(parms.offset) || 0;
         delete parms.offset;
         delete parms.limit;
-
         const filterDefs = Object.entries(parms).map(
-            ([field, { value, type }]) => ({ field, value, type })
+            ([field, { value, type }]) => ({ field, value, type }),
         );
-
         return { filterDefs, limit, offset };
     }
 
     async getAll(table = this.table, selectedRows = "*") {
-        return this.db(table)
-            .select(selectedRows);
+        return this.db(table).select(selectedRows);
     }
 }

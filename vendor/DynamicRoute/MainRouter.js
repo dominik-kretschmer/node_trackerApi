@@ -4,7 +4,6 @@ import { loadRoutes } from "./importCostumRoutes.js";
 
 export async function createRouter() {
     const router = express.Router();
-
     await loadRoutes(router);
     await GetDynamicRoutes(router);
 

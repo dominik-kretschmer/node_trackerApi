@@ -1,6 +1,6 @@
 import { EntityModel } from "../../../vendor/DynamicEntity/EntityModel.js";
 
-const table = "pollen_type";
+const table = "pollen_types";
 
 const buildRow = (pollenType) => ({
     id: pollenType.id,

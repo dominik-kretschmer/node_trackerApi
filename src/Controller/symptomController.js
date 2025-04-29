@@ -2,6 +2,7 @@ import { EntryController } from "../../vendor/DynamicController/EntryController.
 import entities from "../../vendor/DynamicEntity/dynamicEntityLoader.js";
 import { decodeJwtToken } from "../Services/decodeJwtToken.js";
 import { getPollenData } from "../Services/getPollenData.js";
+import { responseHandler } from "../../vendor/DynamicHandler/responseHandler.js";  // <<--
 
 export class SymptomController extends EntryController {
     constructor() {
@@ -10,84 +11,84 @@ export class SymptomController extends EntryController {
 
     sendUserEntries(req, res) {
         return this.withUserId(req, res, async (userId) => {
-            const data =
-                await entities.Pollen_entries.findSymptomAndPollenByDateAndUser(
-                    userId,
-                    req.body,
-                );
-            res.status(200).json(data);
+            const data = await entities.Pollen_entries
+                .findSymptomAndPollenByDateAndUser(userId, req.body);
+            return responseHandler(res, 200, data);
         });
     }
 
-
     async getAvgDailyPollenArr(req, res) {
         try {
-            const userId = await decodeJwtToken(req);
-            const rows = await this.model.getDailyAvg(req.body, userId);
-            return res.status(200).json(rows);
+            const rows = await this.model.getDailyAvg(
+                req.body,
+                await decodeJwtToken(req),
+            );
+            return responseHandler(res, 200, rows);
         } catch (err) {
-            return res.status(500).json({ message: "Serverfehler " + err });
+            return responseHandler(res, 500, err.message);
         }
     }
 
     async saveSymptomData(req, res) {
         try {
             const status = await this.importPollenData(req, res);
-            if (res.headersSent) return;
 
             return this.withUserId(req, res, async (userId) => {
                 req.body.userId = userId;
                 const { sneezing, itchy_eyes, congestion } = req.body;
-                const errors = [];
 
                 if (
                     Number(sneezing) > 10 ||
-                    Number(itchy_eyes > 10) ||
-                    Number(congestion > 10)
+                    Number(itchy_eyes) > 10 ||
+                    Number(congestion) > 10
                 ) {
-                    errors.push("nur scale von maximal 10 bis minimal 0.");
+                    return responseHandler(res, 400, );
                 }
-
-                if (errors.length) {
-                    res.status(400).json({ success: false, errors });
-                    return;
+                if (status.err) {
+                    return responseHandler(res, 500, status.err);
                 }
 
                 await this.model.create(req.body);
-                if (!res.headersSent) {
-                    res.status(200).json({ success: true, status });
-                }
+                return responseHandler(res, 201 ,  status);
             });
         } catch (err) {
-            if (!res.headersSent) {
-                res.status(500).json({
-                    success: false,
-                    message: "Interner Serverfehler: " + err.message,
-                });
-            }
+            responseHandler(res, 500, err.message,);
         }
     }
-    async importPollenData(req, res) {
+
+    async importPollenData(req) {
         try {
-            const regionId = parseInt(req.params.regionId) || undefined;
-            const date = new Date().toISOString().split("T")[0];
-            const pollenData = await getPollenData(regionId);
-            if (!pollenData || Object.keys(pollenData).length === 0) {
-                res.status(404).json({ message: "Keine Daten gefunden" });
-                return;
+            let date = new Date().toISOString().split("T")[0];
+            let pollenData = await getPollenData(undefined, req.body.date);
+
+            if (pollenData.err) {
+                throw new Error(pollenData.err);
             }
+
+            const currentDate = new Date(req.body.date);
+            if (currentDate.toISOString().split("T")[0] !== date) {
+                pollenData = Object.fromEntries(
+                    await Promise.all(
+                        pollenData.map(async ({ pollen_type_id, value }) => {
+                            const { name } = await entities.Pollen_type.findOneBy(
+                                "id",
+                                pollen_type_id,
+                            );
+                            return [name, value];
+                        }),
+                    ),
+                );
+                date = currentDate;
+            }
+
             return {
-                message: "Pollen-Daten erfolgreich gespeichert",
-                regionId,
                 date,
                 pollen: pollenData,
             };
         } catch (err) {
-            if (!res.headersSent) {
-                res.status(500).json({
-                    message: "Fehler beim Importieren der Pollen-Daten" + err,
-                });
-            }
+            return {
+                err: err.message,
+            };
         }
     }
 }

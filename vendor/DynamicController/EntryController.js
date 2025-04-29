@@ -1,4 +1,5 @@
 import { decodeJwtToken } from "../../src/Services/decodeJwtToken.js";
+import { responseHandler } from "../DynamicHandler/responseHandler.js";
 
 export class EntryController {
     constructor(model) {
@@ -9,21 +10,19 @@ export class EntryController {
         try {
             const userId = await decodeJwtToken(req);
             if (!userId) {
-                res.status(401).json({
-                    error: "User nicht gefunden oder nicht eingeloggt",
-                });
-                return;
+                return responseHandler(res, 401);
             }
             await callback(userId);
         } catch (err) {
-            res.status(500).json({ error: "Serverfehler: " + err.message });
+            console.error(err);
+            return responseHandler(res,  500,  err.message,);
         }
     }
 
     sendUserEntries(req, res) {
         return this.withUserId(req, res, async (userId) => {
             const data = await this.model.findByFilter(req.body, userId);
-            res.status(200).json(data);
+            return responseHandler(res, 200, data);
         });
     }
 
@@ -31,7 +30,7 @@ export class EntryController {
         return this.withUserId(req, res, async (userId) => {
             req.body.userId = userId;
             await this.model.create(req.body);
-            res.status(200).json({ message: "Entry wurde angelegt" });
+            return responseHandler(res,  201);
         });
     }
 
@@ -40,14 +39,9 @@ export class EntryController {
             const { id, ...rest } = req.body;
             const updated = await this.model.updateById(userId, id, rest);
             if (!updated) {
-                res.status(404).json({
-                    error: "Eintrag nicht gefunden oder gehört nicht zum Nutzer",
-                });
-                return;
+                return responseHandler(res, 404);
             }
-            return res
-                .status(200)
-                .json({ message: "Eintrag wurde aktualisiert" });
+            return responseHandler(res, 204);
         });
     }
 
@@ -55,12 +49,9 @@ export class EntryController {
         return this.withUserId(req, res, async (userId) => {
             const deleted = await this.model.deleteById(userId, req.body.id);
             if (!deleted) {
-                res.status(404).json({
-                    error: "Eintrag nicht gefunden oder gehört nicht zum Nutzer",
-                });
-                return;
+                return responseHandler(res, 404);
             }
-            res.status(200).json({ message: "Eintrag wurde gelöscht" });
+            return responseHandler(res , 204);
         });
     }
 }
