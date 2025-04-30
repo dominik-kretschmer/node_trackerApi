@@ -6,11 +6,11 @@ export class CacheManager {
 
     constructor(cacheFile) {
         this.cachePath = path.join(this.cacheDir, cacheFile);
-        const promise = this.ensureCacheDir();
+        this.ensureCacheDir();
     }
 
-    async ensureCacheDir() {
-        await fs.mkdir(this.cacheDir, { recursive: true });
+    ensureCacheDir() {
+        fs.mkdir(this.cacheDir, { recursive: true });
     }
 
     async load() {

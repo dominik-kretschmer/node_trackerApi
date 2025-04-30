@@ -1,10 +1,10 @@
-import { parseUpdateTime } from "./dateHandler.js";
-
 function average(range) {
     const [min, max] = range.split("-").map(Number);
     return (min + max) / 2;
 }
-
+const parseUpdateTime = (str) => {
+    return str.replace(" Uhr", "").replace(" ", "T");
+};
 export function extractTodayValues(pollenData) {
     return Object.fromEntries(
         Object.entries(pollenData).map(([name, values]) => {
@@ -13,28 +13,28 @@ export function extractTodayValues(pollenData) {
                 ? average(today)
                 : parseFloat(today);
             return [name, numeric];
-        })
+        }),
     );
 }
 
-export async function saveNewDataInCache(pollenData, data , CacheM) {
+export async function saveNewDataInCache(pollenData, data, CacheM) {
     const { last_update, next_update } = data;
     const [last, next] = [last_update, next_update].map(parseUpdateTime);
 
     await CacheM.save({
         lastUpdate: last,
         nextUpdate: next,
-        pollenData
+        pollenData,
     });
 }
 
 export const dateEqualFilter = (date) => {
-    return{
+    return {
         parms: {
             date: {
                 value: date,
-                type: "equal"
-            }
-        }
+                type: "equal",
+            },
+        },
     };
 };

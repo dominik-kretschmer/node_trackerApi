@@ -2,7 +2,8 @@ import { EntryController } from "../../vendor/DynamicController/EntryController.
 import entities from "../../vendor/DynamicEntity/dynamicEntityLoader.js";
 import { decodeJwtToken } from "../Services/decodeJwtToken.js";
 import { getPollenData } from "../Services/getPollenData.js";
-import { responseHandler } from "../../vendor/DynamicHandler/responseHandler.js";  // <<--
+import { responseHandler } from "../../vendor/DynamicHandler/responseHandler.js";
+import { dateValidator } from "../Services/dateHandler.js";
 
 export class SymptomController extends EntryController {
     constructor() {
@@ -11,8 +12,11 @@ export class SymptomController extends EntryController {
 
     sendUserEntries(req, res) {
         return this.withUserId(req, res, async (userId) => {
-            const data = await entities.Pollen_entries
-                .findSymptomAndPollenByDateAndUser(userId, req.body);
+            const data =
+                await entities.Pollen_entries.findSymptomAndPollenByDateAndUser(
+                    userId,
+                    req.body,
+                );
             return responseHandler(res, 200, data);
         });
     }
@@ -30,9 +34,14 @@ export class SymptomController extends EntryController {
     }
 
     async saveSymptomData(req, res) {
+        dateValidator(req.body.date, res);
+        if (res.headersSent) return;
+
         try {
             const status = await this.importPollenData(req, res);
-
+            if (status.err) {
+                throw new Error(status.err);
+            }
             return this.withUserId(req, res, async (userId) => {
                 req.body.userId = userId;
                 const { sneezing, itchy_eyes, congestion } = req.body;
@@ -42,17 +51,16 @@ export class SymptomController extends EntryController {
                     Number(itchy_eyes) > 10 ||
                     Number(congestion) > 10
                 ) {
-                    return responseHandler(res, 400, );
-                }
-                if (status.err) {
-                    return responseHandler(res, 500, status.err);
+                    return responseHandler(res, 400, {
+                        message: "nur scala von 1-10",
+                    });
                 }
 
                 await this.model.create(req.body);
-                return responseHandler(res, 201 ,  status);
+                return responseHandler(res, 201, status);
             });
         } catch (err) {
-            responseHandler(res, 500, err.message,);
+            responseHandler(res, 500, err.message);
         }
     }
 
@@ -64,16 +72,16 @@ export class SymptomController extends EntryController {
             if (pollenData.err) {
                 throw new Error(pollenData.err);
             }
-
             const currentDate = new Date(req.body.date);
             if (currentDate.toISOString().split("T")[0] !== date) {
                 pollenData = Object.fromEntries(
                     await Promise.all(
                         pollenData.map(async ({ pollen_type_id, value }) => {
-                            const { name } = await entities.Pollen_type.findOneBy(
-                                "id",
-                                pollen_type_id,
-                            );
+                            const { name } =
+                                await entities.Pollen_type.findOneBy(
+                                    "id",
+                                    pollen_type_id,
+                                );
                             return [name, value];
                         }),
                     ),

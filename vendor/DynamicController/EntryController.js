@@ -14,8 +14,7 @@ export class EntryController {
             }
             await callback(userId);
         } catch (err) {
-            console.error(err);
-            return responseHandler(res,  500,  err.message,);
+            return responseHandler(res, 500, err.message);
         }
     }
 
@@ -30,7 +29,7 @@ export class EntryController {
         return this.withUserId(req, res, async (userId) => {
             req.body.userId = userId;
             await this.model.create(req.body);
-            return responseHandler(res,  201);
+            return responseHandler(res, 201);
         });
     }
 
@@ -51,7 +50,7 @@ export class EntryController {
             if (!deleted) {
                 return responseHandler(res, 404);
             }
-            return responseHandler(res , 204);
+            return responseHandler(res, 204);
         });
     }
 }

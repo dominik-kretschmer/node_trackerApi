@@ -1,32 +1,18 @@
+import { responseHandler } from "../../vendor/DynamicHandler/responseHandler.js";
+
+export const tomorrow = new Date(Date.now() + 86400000);
+
 export const getTodaysDate = () => {
-    const now = new Date();
-
-    const fmt = new Intl.DateTimeFormat("sv-SE", {
-        timeZone: "Europe/Berlin",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    });
-
-    const parts = fmt.format(now).split(" ");
-    const datePart = parts[0];
-    const timePart = parts[1];
-
-    return new Date(`${datePart}T${timePart}`).toISOString();
+    const d = new Date();
+    d.setMinutes(d.getMinutes() + d.getTimezoneOffset() + 120);
+    return d.toISOString();
 };
 
 export const compareDate = (date1, date2, methode) => {
-    if (!date1) {
-        date1 = getTodaysDate().split("T")[0];
-    }
+    date1 ??= getTodaysDate().split("T")[0];
 
-    const d1 = typeof date1 === "string" ? new Date(date1) : date1;
-    const d2 = typeof date2 === "string" ? new Date(date2) : date2;
-    const t1 = d1.getTime();
-    const t2 = d2.getTime();
+    const toTs = (d) => (typeof d === "string" ? new Date(d) : d).getTime();
+    const [t1, t2] = [date1, date2].map(toTs);
 
     switch (methode) {
         case "<":
@@ -42,18 +28,29 @@ export const compareDate = (date1, date2, methode) => {
     }
 };
 
-export const parseUpdateTime = (str) => {
-    return str.replace(" Uhr", "").replace(" ", "T");
-};
-
 export function handleGetPollenDataDates(date, cache) {
-    const today = getTodaysDate().split("T")[0];
+    const now = getTodaysDate();
+    const today = now.split("T")[0];
     const entryIsToday = compareDate(null, date, "===");
-    const UpdateTimeReached = compareDate(
-        getTodaysDate(),
-        cache.nextUpdate,
-        ">",
-    );
+    const UpdateTimeReached = compareDate(now, cache.nextUpdate, ">");
     const todaysUpdateTimeReached = UpdateTimeReached && entryIsToday;
     return { today, entryIsToday, todaysUpdateTimeReached };
+}
+
+export function dateValidator(date, res) {
+    try {
+        date = new Date(date);
+        const isInFuture = compareDate(tomorrow, date, "<");
+        if (!isValidDate(date)) {
+            throw new Error("not a valid date");
+        } else if (isInFuture) {
+            throw new Error("date cant be in the future");
+        }
+    } catch (err) {
+        return responseHandler(res, 400, err);
+    }
+}
+
+function isValidDate(d) {
+    return d instanceof Date && !isNaN(d.getTime());
 }
