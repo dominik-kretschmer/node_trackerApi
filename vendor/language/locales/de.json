@@ -1,0 +1,20 @@
+{
+    "200": "Erfolgreich",
+    "201": "Eintrag erfolgreich erstellt",
+    "400": "Fehler in der Anfrage",
+    "401": "Fehler bei Authentifizierung",
+    "403": "Keine Berechtigung",
+    "404": "Eintrag nicht gefunden",
+    "409": "Username schon registriert",
+    "500": "Interner Fehler",
+    "503": "Dienst vorübergehend nicht verfügbar",
+    "validation": {
+        "range": "Nur Skala von 1–10",
+        "login": "Login abgelaufen",
+        "date": {
+            "invalid": "Kein gültiges Datum",
+            "inFuture": "Datum darf nicht in der Zukunft liegen"
+        },
+        "operator": "Ungültige Methode. Erlaubt sind '<', '>' und '==='."
+    }
+}

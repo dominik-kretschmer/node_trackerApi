@@ -1,0 +1,20 @@
+{
+    "200": "Succès",
+    "201": "Entrée créée avec succès",
+    "400": "Requête incorrecte",
+    "401": "Échec de l'authentification",
+    "403": "Interdit",
+    "404": "Entrée non trouvée",
+    "409": "Nom d'utilisateur déjà enregistré",
+    "500": "Erreur interne",
+    "503": "Service temporairement indisponible",
+    "validation": {
+        "range": "La valeur doit être comprise entre 1 et 10",
+        "login": "Session expirée",
+        "date": {
+            "invalid": "Date invalide",
+            "inFuture": "La date ne peut pas être dans le futur"
+        },
+        "operator": "Opérateur invalide. Les opérateurs autorisés sont '<', '>' et '==='."
+    }
+}

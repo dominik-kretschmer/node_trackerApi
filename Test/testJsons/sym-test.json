@@ -1,0 +1,57 @@
+[
+    {
+        "method": "POST",
+        "url": "http://localhost:3000/api/symptom/search",
+        "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Nzc0MTA0MywiZXhwIjoxNzQ3ODI3NDQzfQ.wC-o1iVvEg7lh4uHW0cILGOk2eysHVx48UyylOMG0zk",
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "parms": {
+                "date": {
+                    "value": "",
+                    "type": "like"
+                },
+                "limit": 1000,
+                "offset": 0
+            }
+        }
+    },
+    {
+        "method": "POST",
+        "url": "http://localhost:3000/api/symptom/search",
+        "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Nzc0MTA0MywiZXhwIjoxNzQ3ODI3NDQzfQ.wC-o1iVvEg7lh4uHW0cILGOk2eysHVx48UyylOMG0zk",
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "parms": {
+                "date": {
+                    "value": "",
+                    "type": "like"
+                },
+                "limit": 1,
+                "offset": 0
+            }
+        }
+    },
+    {
+        "method": "POST",
+        "url": "http://localhost:3000/api/symptom/search",
+        "headers": {
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Nzc0MTA0MywiZXhwIjoxNzQ3ODI3NDQzfQ.wC-o1iVvEg7lh4uHW0cILGOk2eysHVx48UyylOMG0zk",
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "parms": {
+                "date": {
+                    "value": "",
+                    "type": "like"
+                },
+                "limit": 0,
+                "offset": 0
+            }
+        },
+        "expected": 401
+    }
+]

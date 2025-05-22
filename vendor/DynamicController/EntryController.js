@@ -10,18 +10,25 @@ export class EntryController {
         try {
             const userId = await decodeJwtToken(req);
             if (!userId) {
-                return responseHandler(res, 401);
+                return responseHandler(req, res, 401);
             }
             await callback(userId);
         } catch (err) {
-            return responseHandler(res, 500, err.message);
+            if (err.toString().includes("jwt expired")) {
+                err.message = req.t("validation.login");
+                return responseHandler(req, res, 401, err);
+            }
+            return responseHandler(req, res, 500, err.message);
         }
     }
 
     sendUserEntries(req, res) {
         return this.withUserId(req, res, async (userId) => {
             const data = await this.model.findByFilter(req.body, userId);
-            return responseHandler(res, 200, data);
+            if (Array.isArray(data) && data.length === 0) {
+                return responseHandler(req, res, 404);
+            }
+            return responseHandler(req, res, 200, data);
         });
     }
 
@@ -29,7 +36,7 @@ export class EntryController {
         return this.withUserId(req, res, async (userId) => {
             req.body.userId = userId;
             await this.model.create(req.body);
-            return responseHandler(res, 201);
+            return responseHandler(req, res, 201);
         });
     }
 
@@ -38,9 +45,9 @@ export class EntryController {
             const { id, ...rest } = req.body;
             const updated = await this.model.updateById(userId, id, rest);
             if (!updated) {
-                return responseHandler(res, 404);
+                return responseHandler(req, res, 404);
             }
-            return responseHandler(res, 204);
+            return responseHandler(req, res, 204);
         });
     }
 
@@ -48,9 +55,9 @@ export class EntryController {
         return this.withUserId(req, res, async (userId) => {
             const deleted = await this.model.deleteById(userId, req.body.id);
             if (!deleted) {
-                return responseHandler(res, 404);
+                return responseHandler(req, res, 404);
             }
-            return responseHandler(res, 204);
+            return responseHandler(req, res, 204);
         });
     }
 }

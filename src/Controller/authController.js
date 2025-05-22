@@ -13,14 +13,14 @@ export class AuthController extends EntryController {
         const { username, password_hash } = req.body;
         try {
             if (await this.model.findOneBy("username", username)) {
-                return responseHandler(res, 409);
+                return responseHandler(req, res, 409);
             }
             const hash = await bcrypt.hash(password_hash, 10);
             await this.model.create({ username, password_hash: hash });
 
-            responseHandler(res, 201);
+            responseHandler(req, res, 201);
         } catch (err) {
-            responseHandler(res, 500, err.message);
+            responseHandler(req, res, 500, err.message);
         }
     }
 
@@ -29,7 +29,7 @@ export class AuthController extends EntryController {
         try {
             const user = await this.model.findOneBy("username", username);
             if (!user) {
-                return responseHandler(res, 401);
+                return responseHandler(req, res, 401);
             }
 
             const match = await bcrypt.compare(
@@ -38,16 +38,16 @@ export class AuthController extends EntryController {
             );
 
             if (!match) {
-                return responseHandler(res, 401);
+                return responseHandler(req, res, 401);
             }
             const token = jwt.sign(
                 { userId: user.id },
                 process.env.JWT_SECRET,
                 { expiresIn: "1d" },
             );
-            responseHandler(res, 200, token);
+            responseHandler(req, res, 200, token);
         } catch (err) {
-            responseHandler(res, 500, err);
+            responseHandler(req, res, 500, err);
         }
     }
 }

@@ -3,7 +3,7 @@ import entities from "../../vendor/DynamicEntity/dynamicEntityLoader.js";
 import { decodeJwtToken } from "../Services/decodeJwtToken.js";
 import { getPollenData } from "../Services/getPollenData.js";
 import { responseHandler } from "../../vendor/DynamicHandler/responseHandler.js";
-import { dateValidator } from "../Services/dateHandler.js";
+import { dateValidator, getTodaysDate } from "../Services/dateHandler.js";
 
 export class SymptomController extends EntryController {
     constructor() {
@@ -17,7 +17,7 @@ export class SymptomController extends EntryController {
                     userId,
                     req.body,
                 );
-            return responseHandler(res, 200, data);
+            return responseHandler(req, res, 200, data);
         });
     }
 
@@ -27,17 +27,19 @@ export class SymptomController extends EntryController {
                 req.body,
                 await decodeJwtToken(req),
             );
-            return responseHandler(res, 200, rows);
+            return responseHandler(req, res, 200, rows);
         } catch (err) {
-            return responseHandler(res, 500, err.message);
+            return responseHandler(req, res, 500, err.message);
         }
     }
 
     async saveSymptomData(req, res) {
-        dateValidator(req.body.date, res);
         if (res.headersSent) return;
+        const today = getTodaysDate().split("T")[0];
+        req.body.date = req.body.date || today;
 
         try {
+            dateValidator(req.body.date, req);
             const status = await this.importPollenData(req, res);
             if (status.err) {
                 throw new Error(status.err);
@@ -51,16 +53,16 @@ export class SymptomController extends EntryController {
                     Number(itchy_eyes) > 10 ||
                     Number(congestion) > 10
                 ) {
-                    return responseHandler(res, 400, {
-                        message: "nur scala von 1-10",
+                    return responseHandler(req, res, 400, {
+                        message: req.t("validation.range"),
                     });
                 }
 
                 await this.model.create(req.body);
-                return responseHandler(res, 201, status);
+                return responseHandler(req, res, 201, status);
             });
         } catch (err) {
-            responseHandler(res, 500, err.message);
+            responseHandler(req, res, 500, err.message);
         }
     }
 
@@ -68,7 +70,6 @@ export class SymptomController extends EntryController {
         try {
             let date = new Date().toISOString().split("T")[0];
             let pollenData = await getPollenData(undefined, req.body.date);
-
             if (pollenData.err) {
                 throw new Error(pollenData.err);
             }
@@ -88,7 +89,6 @@ export class SymptomController extends EntryController {
                 );
                 date = currentDate;
             }
-
             return {
                 date,
                 pollen: pollenData,

@@ -1,0 +1,54 @@
+[
+    {
+        "method": "POST",
+        "url": "http://localhost:3000/api/login",
+        "headers": {
+            "Accept-Language": "en",
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "username": "tobi",
+            "password_hash": "test"
+        },
+        "expected": 200
+    },
+    {
+        "method": "POST",
+        "url": "http://localhost:3000/api/login",
+        "headers": {
+            "Accept-Language": "en",
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "username": "tossbi",
+            "password_hash": "test"
+        },
+        "expected": 401
+    },
+    {
+        "method": "POST",
+        "url": "http://localhost:3000/api/login",
+        "headers": {
+            "Accept-Language": "fr",
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "username": "tobi",
+            "password_hash": "test"
+        },
+        "expected": 200
+    },
+    {
+        "method": "POST",
+        "url": "http://localhost:3000/api/login",
+        "headers": {
+            "Accept-Language": "de",
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "username": "tobi",
+            "password_hash": "test"
+        },
+        "expected": 200
+    }
+]
